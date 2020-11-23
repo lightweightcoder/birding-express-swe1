@@ -1,0 +1,24 @@
+body {
+  padding-top: 70px;
+  padding-bottom: 40px;
+}
+
+#note-header-container {
+  margin-top: 30px;
+}
+
+#note-header {
+  text-align: center;
+}
+
+#note-data-container {
+  margin-top: 30px;
+  background: lightgreen;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#info {
+  background: lightskyblue;
+  padding: 10px;
+}

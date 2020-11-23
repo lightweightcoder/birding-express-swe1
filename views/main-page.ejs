@@ -1,0 +1,101 @@
+<!-- header -->
+<%- include('header', {cssFilePath: '/main-page.css'}); -%>
+
+<div class="container-fluid" id="sort-notes-container">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1>Bird Notes</h1>
+    </div>
+
+    <div class="col-12">
+      <form action="/" method="GET" id="sort-drop-down">
+        <label for="sortby">sort by:</label>
+        <select
+          name="sortby"
+          id="sortby"
+          class="form-control"
+          placeholder="select category"
+          required
+        >
+          <option value="" disabled selected hidden>Category</option>
+          <option value="shape">shape</option>
+          <option value="city">city</option>
+        </select>
+        <label for="sortOrder">order:</label>
+        <select
+          name="sortOrder"
+          id="sortOrder"
+          class="form-control"
+          placeholder="select category"
+          required
+        >
+          <option value="" disabled selected hidden>Order</option>
+          <option value="asc">ascending</option>
+          <option value="desc">descending</option>
+        </select>
+        <input
+          type="submit"
+          value="Submit"
+          class="btn btn-primary"
+          id="sort-button"
+        />
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="notes-list-container">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <h1 id="notes-list-header">Bird Notes List</h1>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-3">
+      <h4>Date</h4>
+    </div>
+    <div class="col-4">
+      <h4>Behaviour</h4>
+    </div>
+    <div class="col-2">
+      <h4>Flock Size</h4>
+    </div>
+    <div class="col-2"></div>
+  </div>
+</div>
+
+<div class="container overflow-auto" id="notes-items-container">
+  <% notes.forEach((element) => { %>
+  <div class="row justify-content-center notes">
+    <div class="col-3">
+      <p>
+        <a class="badge badge-light" href="/note/<%= element.id %> "
+          ><%= element.date %></a
+        >
+      </p>
+    </div>
+    <div class="col-4">
+      <p class="behaviour-content"><%= element.behaviour %></p>
+    </div>
+    <div class="col-2">
+      <p><%= element.flock_size %></p>
+    </div>
+    <div class="col-2">
+      <form
+        action="note/<%= element.id %>/delete?_method=DELETE"
+        method="POST"
+      >
+        <input
+          type="submit"
+          value="Delete"
+          class="btn btn-danger delete-button"
+        />
+      </form>
+    </div>
+  </div>
+  <% }); %>
+</div>
+
+<!-- footer -->
+<%- include('footer'); -%>

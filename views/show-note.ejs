@@ -1,0 +1,24 @@
+<!-- header -->
+<%- include('header', {cssFilePath: '/show-note.css'}); -%>
+
+<div class="container" id="note-header-container">
+  <div class="row justify-content-center">
+    <div class="col-10" id="note-header">
+      <h1>Note</h1>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="note-data-container">
+  <div class="row">
+    <% Object.keys(note).forEach(function(key) { %>
+    <div class="col-10">
+      <p><%= `${key}:` %></p>
+      <p id="info"><%= `${note[key]}` %></p>
+    </div>
+    <% }); %>
+  </div>
+</div>
+
+<!-- footer -->
+<%- include('footer'); -%>

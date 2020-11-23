@@ -1,0 +1,58 @@
+body {
+  background-color: #f2dcbb;
+  padding-top: 60px;
+  padding-bottom: 40px;
+  color: black;
+  font-family: "Trebuchet MS", sans-serif;
+}
+
+#sort-notes-container {
+  color: white;
+  padding: 30px 0;
+  text-align: center;
+  background: linear-gradient(rgba(124, 89, 89, 0.1), rgba(0, 0, 0, 0.1)),
+    url("https://external-preview.redd.it/9jDxzBi9KkxWQK8K5feLklHpOVRuYT_8K40WBUxaQTs.jpg?auto=webp&s=194a56b6e1dc34e7daef915ccb370bdf4866b37d");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 5%;
+}
+
+#sort-drop-down {
+  width: 200px;
+  margin: auto;
+}
+
+#sort-button {
+  margin-top: 15px;
+}
+
+#notes-list-container {
+  margin-top: 20px;
+}
+
+#notes-list-header {
+  margin-top: 10px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.notes {
+  margin-bottom: 5px;
+}
+
+#notes-items-container {
+  height: 400px;
+}
+
+.behaviour-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 992px) {
+  #notes-items-container,
+  #notes-list-container {
+    max-width: 900px;
+  }
+}

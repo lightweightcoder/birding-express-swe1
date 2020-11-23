@@ -1,0 +1,32 @@
+<!-- header -->
+<%- include('header', {cssFilePath: '/note.css'}); -%>
+
+<div class="container" id="form-container">
+  <div class="row">
+    <div class="col">
+      <h1>Obervation</h1>
+    </div>
+  </div>
+
+  <form action="/note" method="POST">
+    <div class="form-group">
+      <label for="date">date - (DD/MM/YY) (HH:MM):</label><br />
+      <input type="text" id="date" name="date" class="form-control" />
+    </div>
+
+    <div class="form-group">
+      <label for="behaviour">behaviour:</label><br />
+      <textarea id="behaviour" name="behaviour" rows="3" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="flockSize">flock size:</label><br />
+      <input type="text" id="flockSize" name="flockSize" class="form-control" />
+    </div>
+
+    <input type="submit" value="Submit" class="btn btn-outline-light" />
+  </form>
+</div>
+
+<!-- footer -->
+<%- include('footer'); -%>
