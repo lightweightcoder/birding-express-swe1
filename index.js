@@ -49,11 +49,14 @@ app.post('/note', (request, response) => {
   // create vars for the date, behaviour and flock_size
   const { date, behaviour, flockSize } = request.body;
 
+  // get the user_id value from the cookie
+  const { userId } = request.cookies;
+
   // set the values to put into the sql query
-  const values = [date, behaviour, flockSize];
+  const values = [date, behaviour, flockSize, userId];
 
   // set the sql query
-  const sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size) VALUES ($1, $2, $3) RETURNING *';
+  const sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size, user_id) VALUES ($1, $2, $3, $4) RETURNING *';
 
   // callback function for sql query
   const whenDoneWithQuery = (error, result) => {
@@ -241,7 +244,7 @@ app.post('/login', (request, response) => {
 
     // verify the password
     if (user.password === request.body.password) {
-      response.cookie('userId', user.email);
+      response.cookie('userId', user.id);
       response.send('logged in! Click <a href="/">here</a> to return to return to the main page.');
     } else {
       // password didn't match
