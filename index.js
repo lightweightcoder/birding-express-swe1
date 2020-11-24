@@ -1,6 +1,7 @@
 import express from 'express';
 import methodOverride from 'method-override';
 import pg from 'pg';
+import cookieParser from 'cookie-parser';
 
 // Initialise the DB connection -----------------------------
 const { Pool } = pg;
@@ -25,6 +26,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
 // config to allow use of public folder
 app.use(express.static('public'));
+// config to allow use of cookie parser
+app.use(cookieParser());
 
 // routes =============================================================
 
@@ -37,7 +40,7 @@ app.get('/note', (request, response) => {
   response.render('note');
 });
 
-// accept form request and add the new note to
+// accept form request and add the new note to the database
 // 1st param: the url that the post request is coming from
 // 2nd param: callback to execute when post request is made
 app.post('/note', (request, response) => {
@@ -141,6 +144,126 @@ app.get('/', (request, response) => {
 
 // end of functionality for user to display a list (all) of notes -------------------
 // --------------------------------------------------------------------------------------
+
+// start of functionality for user to sign up an account by filling up a form ------------
+
+// render the signup form that will create the request
+app.get('/signup', (request, response) => {
+  console.log('request to render a sign up form came in');
+
+  response.render('signup');
+});
+
+// accept the form request and add the new user to users database
+app.post('/signup', (request, response) => {
+  console.log('post request of a sign up came in');
+
+  // set the values to put into the sql query
+  // in this case there is only 1 value: the sign up email
+  const values = [request.body.email];
+
+  // set the sql query to find an email that is the same as the signup email
+  const sameEmailQuery = 'SELECT * from users WHERE email=$1';
+
+  // execute the query
+  pool.query(sameEmailQuery, values, (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+
+    if (result.rows.length >= 1) {
+      // found a user with the same email as the sign up email.
+      response.status(403).send('sorry this email has already been taken!');
+      return;
+    }
+
+    // logic to add a new user to the users database
+
+    // set the values to put into the sql query
+    const addUserValues = [request.body.email, request.body.password];
+
+    // set the sql query to add the new user into users database
+    const addUserQuery = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *';
+
+    // execute the query
+    pool.query(addUserQuery, addUserValues, (addUserError, addUserResult) => {
+      if (addUserError) {
+        console.log('error executing query', addUserError.stack);
+        response.status(503).send('error executing query');
+        return;
+      }
+
+      console.table(addUserResult.rows);
+
+      response.send('successfully created account! Please return to main page to log in');
+    });
+  });
+});
+
+// end of functionality for user to sign up an account by filling up a form ------------
+// --------------------------------------------------------------------------
+
+// start of functionality for user to login by filling up a form ------------
+
+// render the login form that will create the request
+app.get('/login', (request, response) => {
+  console.log('request to render a login form came in');
+
+  response.render('login');
+});
+
+// accept the form request and validate the user email and password
+app.post('/login', (request, response) => {
+  console.log('post request to login came in');
+
+  const values = [request.body.email];
+
+  pool.query('SELECT * from users WHERE email=$1', values, (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send('unexpected error');
+      return;
+    }
+
+    if (result.rows.length === 0) {
+      // we didnt find a user with that email.
+      // the error for password and user are the same.
+      // don't tell the user which error they got for security reasons,
+      // otherwise people can guess if a person is a user of a given service.
+      response.status(403).send('sorry we there is no such email! Please login again <a href="/login">here</a>');
+      return;
+    }
+
+    // get the user object
+    const user = result.rows[0];
+
+    // verify the password
+    if (user.password === request.body.password) {
+      response.cookie('userId', user.email);
+      response.send('logged in! Click <a href="/">here</a> to return to return to the main page.');
+    } else {
+      // password didn't match
+      // the error for password and user are the same
+      // don't tell the user which error they got for security reasons,
+      // otherwise people can guess if a person is a user of a given service.
+      response.status(403).send('sorry your password was wrong! Please login again <a href="/login">here</a>');
+    }
+  });
+});
+
+// end of functionality for user to login by filling up a form ------------
+// --------------------------------------------------------------------------
+
+// accept the logout request
+app.delete('/logout', (request, response) => {
+  console.log('request to logout came in');
+
+  response.clearCookie('userId');
+
+  response.send('you have logged out! Click <a href="/">here</a> to return to mainpage');
+});
 
 // set the port to listen for requests
 app.listen(PORT);

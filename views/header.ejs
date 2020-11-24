@@ -34,7 +34,26 @@
       <div class="collapse navbar-collapse" id="navbar-menu">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a href="/note" class="nav-link">create new note</a>
+            <a href="/note" class="nav-link">Create new note</a>
+          </li>
+          <li class="nav-item">
+            <a href="/signup" class="nav-link">Sign up</a>
+          </li>
+          <li class="nav-item">
+            <a href="/login" class="nav-link">Login</a>
+          </li>
+          <li class="nav-item">
+            <form
+            action="/logout?_method=DELETE"
+            method="POST"
+          >
+            <input
+              type="submit"
+              value="logout"
+              class="btn btn-primary"
+              id="logout-button"
+            />
+          </form>
           </li>
         </ul>
       </div>
