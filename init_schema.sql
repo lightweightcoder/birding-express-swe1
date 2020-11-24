@@ -11,3 +11,5 @@ CREATE TABLE species (
     name TEXT,
     scientific_name TEXT
 );
+
+INSERT INTO species (name, scientific_name) VALUES ('Cinnamon Bittern', 'Ixobrychus cinnamomeus');

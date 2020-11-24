@@ -235,7 +235,7 @@ app.post('/login', (request, response) => {
       // the error for password and user are the same.
       // don't tell the user which error they got for security reasons,
       // otherwise people can guess if a person is a user of a given service.
-      response.status(403).send('sorry we there is no such email! Please login again <a href="/login">here</a>');
+      response.status(403).send('sorry login failed! Please login again <a href="/login">here</a>');
       return;
     }
 
@@ -251,7 +251,7 @@ app.post('/login', (request, response) => {
       // the error for password and user are the same
       // don't tell the user which error they got for security reasons,
       // otherwise people can guess if a person is a user of a given service.
-      response.status(403).send('sorry your password was wrong! Please login again <a href="/login">here</a>');
+      response.status(403).send('sorry login failed! Please login again <a href="/login">here</a>');
     }
   });
 });
