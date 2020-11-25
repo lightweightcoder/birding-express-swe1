@@ -243,7 +243,10 @@ app.post('/login', (request, response) => {
   // the SALT is a constant value.
   // In practice we would not want to store this "secret value" in plain text in our code.
   // We will learn methods later in SWE1 to obfuscate this value in our code.
-  const SALT = 'bananas are delicious';
+  // const SALT = 'bananas are delicious';
+  // A better way is to store "secret values" in a separate file.
+  // One such example is the use of enironment variables
+  const myEnvVar = process.env.MY_ENV_VAR;
 
   const values = [request.body.email];
 
@@ -274,7 +277,8 @@ app.post('/login', (request, response) => {
       const userIdShaObj = new jsSha('SHA-512', 'TEXT', { encoding: 'UTF8' });
 
       // create an unhashed cookie string based on user ID and salt
-      const unhashedUserIdCookieString = `${user.id}-${SALT}`;
+      const unhashedUserIdCookieString = `${user.id}-${myEnvVar}`;
+      console.log('unhashed cookie string:', unhashedUserIdCookieString);
       // input the unhashed cookie string to the SHA object
       userIdShaObj.update(unhashedUserIdCookieString);
       // generate a hashed cookie string using SHA object
@@ -305,6 +309,7 @@ app.delete('/logout', (request, response) => {
   console.log('request to logout came in');
 
   response.clearCookie('userId');
+  response.clearCookie('loggedInHash');
 
   response.send('you have logged out! Click <a href="/">here</a> to return to mainpage');
 });
