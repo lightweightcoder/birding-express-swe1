@@ -2,6 +2,7 @@ import express from 'express';
 import methodOverride from 'method-override';
 import pg from 'pg';
 import cookieParser from 'cookie-parser';
+import jsSha from 'jssha';
 
 // Initialise the DB connection -----------------------------
 const { Pool } = pg;
@@ -238,6 +239,12 @@ app.get('/login', (request, response) => {
 app.post('/login', (request, response) => {
   console.log('post request to login came in');
 
+  // SALT is used to hash the userId cookie
+  // the SALT is a constant value.
+  // In practice we would not want to store this "secret value" in plain text in our code.
+  // We will learn methods later in SWE1 to obfuscate this value in our code.
+  const SALT = 'bananas are delicious';
+
   const values = [request.body.email];
 
   pool.query('SELECT * from users WHERE email=$1', values, (error, result) => {
@@ -261,7 +268,22 @@ app.post('/login', (request, response) => {
 
     // verify the password
     if (user.password === request.body.password) {
+      // entered password matches user password in users table
+
+      // create new SHA object for user id
+      const userIdShaObj = new jsSha('SHA-512', 'TEXT', { encoding: 'UTF8' });
+
+      // create an unhashed cookie string based on user ID and salt
+      const unhashedUserIdCookieString = `${user.id}-${SALT}`;
+      // input the unhashed cookie string to the SHA object
+      userIdShaObj.update(unhashedUserIdCookieString);
+      // generate a hashed cookie string using SHA object
+      const hashedUserIdCookieString = userIdShaObj.getHash('HEX');
+      // set the loggedInHash and userId cookies in the response
+      response.cookie('loggedInHash', hashedUserIdCookieString);
       response.cookie('userId', user.id);
+
+      // send the response
       response.send('logged in! Click <a href="/">here</a> to return to return to the main page.');
     } else {
       // password didn't match
