@@ -4,6 +4,15 @@ import pg from 'pg';
 import cookieParser from 'cookie-parser';
 import jsSha from 'jssha';
 
+// SALT is used to hash the userId cookie
+// the SALT is a constant value.
+// In practice we would not want to store this "secret value" in plain text in our code.
+// We will learn methods later in SWE1 to obfuscate this value in our code.
+// const SALT = 'bananas are delicious';
+// A better way is to store "secret values" in a separate file.
+// One such example is the use of enironment variables
+const myEnvVar = process.env.MY_ENV_VAR;
+
 // Initialise the DB connection -----------------------------
 const { Pool } = pg;
 const pgConnectionConfigs = {
@@ -38,6 +47,30 @@ app.use(cookieParser());
 app.get('/note', (request, response) => {
   console.log('request to render a new note came in');
 
+  // to verify userId will produce a hash equal to loggedInHash
+  // this is to prevent people from just sending a random userId to authenticate themselves --------
+
+  // extract loggedInHash and userId from request cookies
+  // if there are such cookies, loggedInHash and userId will have a value of undefined
+  const { loggedInHash, userId } = request.cookies;
+  // create new SHA object
+  const shaObj = new jsSha('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  // reconstruct the hashed cookie string
+  const unhashedCookieString = `${userId}-${myEnvVar}`;
+  // input the unhashed cookie string to the SHA object
+  shaObj.update(unhashedCookieString);
+  // generate a hashed cookie string using SHA object
+  const hashedCookieString = shaObj.getHash('HEX');
+
+  // verify if the generated hashed cookie string matches the request cookie value.
+  // if hashed value doesn't match, return 403.
+  if (hashedCookieString !== loggedInHash) {
+    response.status(403).send('please login <a href="/login">here</a>.');
+    return;
+  }
+
+  // logic to render the form ------------------------------
+
   // query the DB for species table
   pool.query('SELECT * FROM species', (error, result) => {
     if (error) {
@@ -67,7 +100,7 @@ app.post('/note', (request, response) => {
     date, behaviour, flockSize, speciesId,
   } = request.body;
 
-  // get the user_id value from the cookie
+  // // get the user_id value from the cookie
   const { userId } = request.cookies;
 
   // set the values to put into the sql query
@@ -238,15 +271,6 @@ app.get('/login', (request, response) => {
 // accept the form request and validate the user email and password
 app.post('/login', (request, response) => {
   console.log('post request to login came in');
-
-  // SALT is used to hash the userId cookie
-  // the SALT is a constant value.
-  // In practice we would not want to store this "secret value" in plain text in our code.
-  // We will learn methods later in SWE1 to obfuscate this value in our code.
-  // const SALT = 'bananas are delicious';
-  // A better way is to store "secret values" in a separate file.
-  // One such example is the use of enironment variables
-  const myEnvVar = process.env.MY_ENV_VAR;
 
   const values = [request.body.email];
 
