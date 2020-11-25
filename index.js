@@ -13,7 +13,7 @@ const pgConnectionConfigs = {
 };
 const pool = new Pool(pgConnectionConfigs);
 
-// Initialise Express -------------------------
+// Initialise Express ---------------------------
 // create an express application
 const app = express();
 // set the port number
@@ -37,7 +37,22 @@ app.use(cookieParser());
 app.get('/note', (request, response) => {
   console.log('request to render a new note came in');
 
-  response.render('note');
+  // query the DB for species table
+  pool.query('SELECT * FROM species', (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(`error 503: service unavilable.<br /> ${result.rows}`);
+      return;
+    }
+
+    // store the species table in an object
+    const templateData = {
+      species: result.rows,
+    };
+
+    // render the form
+    response.render('note', templateData);
+  });
 });
 
 // accept form request and add the new note to the database
@@ -46,17 +61,19 @@ app.get('/note', (request, response) => {
 app.post('/note', (request, response) => {
   console.log('post request of a new note came in');
 
-  // create vars for the date, behaviour and flock_size
-  const { date, behaviour, flockSize } = request.body;
+  // create vars for the date, behaviour, flockSize and speciesId
+  const {
+    date, behaviour, flockSize, speciesId,
+  } = request.body;
 
   // get the user_id value from the cookie
   const { userId } = request.cookies;
 
   // set the values to put into the sql query
-  const values = [date, behaviour, flockSize, userId];
+  const values = [date, behaviour, flockSize, userId, speciesId];
 
   // set the sql query
-  const sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size, user_id) VALUES ($1, $2, $3, $4) RETURNING *';
+  const sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size, user_id, species_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
 
   // callback function for sql query
   const whenDoneWithQuery = (error, result) => {
@@ -259,6 +276,8 @@ app.post('/login', (request, response) => {
 // end of functionality for user to login by filling up a form ------------
 // --------------------------------------------------------------------------
 
+// start of functionality for user to logout ------------
+
 // accept the logout request
 app.delete('/logout', (request, response) => {
   console.log('request to logout came in');
@@ -267,6 +286,9 @@ app.delete('/logout', (request, response) => {
 
   response.send('you have logged out! Click <a href="/">here</a> to return to mainpage');
 });
+
+// end of functionality for user to logout ------------
+// ----------------------------------------------------
 
 // set the port to listen for requests
 app.listen(PORT);

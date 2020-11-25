@@ -13,3 +13,7 @@ CREATE TABLE species (
 );
 
 INSERT INTO species (name, scientific_name) VALUES ('Cinnamon Bittern', 'Ixobrychus cinnamomeus');
+
+ALTER TABLE notes ADD COLUMN species_id INTEGER;
+
+UPDATE notes SET species_id=1 WHERE id=1;
