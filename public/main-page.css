@@ -42,6 +42,11 @@ body {
 
 .notes {
   margin-bottom: 5px;
+  text-align: center;
+}
+
+.notes-headers {
+  text-align: center;
 }
 
 #notes-items-container {

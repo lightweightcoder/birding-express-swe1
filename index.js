@@ -72,20 +72,30 @@ app.get('/note', (request, response) => {
   // logic to render the form ------------------------------
 
   // query the DB for species table
-  pool.query('SELECT * FROM species', (error, result) => {
-    if (error) {
-      console.log('Error executing query', error.stack);
-      response.status(503).send(`error 503: service unavilable.<br /> ${result.rows}`);
+  pool.query('SELECT * FROM species', (speciesError, speciesResult) => {
+    if (speciesError) {
+      console.log('Error executing select species query', speciesError.stack);
+      response.status(503).send(`error 503: service unavilable.<br /> ${speciesResult.rows}`);
       return;
     }
 
-    // store the species table in an object
-    const templateData = {
-      species: result.rows,
-    };
+    // query the DB for bahaviours table
+    pool.query('SELECT * FROM behaviours', (behaviourError, behaviourResult) => {
+      if (behaviourError) {
+        console.log('Error executing select species query', behaviourError.stack);
+        response.status(503).send(`error 503: service unavilable.<br /> ${behaviourResult.rows}`);
+        return;
+      }
 
-    // render the form
-    response.render('note', templateData);
+      // store the species table in an object
+      const templateData = {
+        species: speciesResult.rows,
+        behaviours: behaviourResult.rows,
+      };
+
+      // render the form
+      response.render('note', templateData);
+    });
   });
 });
 
@@ -95,19 +105,19 @@ app.get('/note', (request, response) => {
 app.post('/note', (request, response) => {
   console.log('post request of a new note came in');
 
-  // create vars for the date, behaviour, flockSize and speciesId
+  // create vars for the date, flockSize, speciesId
   const {
-    date, behaviour, flockSize, speciesId,
+    date, flockSize, speciesId,
   } = request.body;
 
   // // get the user_id value from the cookie
   const { userId } = request.cookies;
 
   // set the values to put into the sql query
-  const values = [date, behaviour, flockSize, userId, speciesId];
+  const values = [date, flockSize, userId, speciesId];
 
   // set the sql query
-  const sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size, user_id, species_id) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+  const sqlQuery = 'INSERT INTO notes (date, flock_size, user_id, species_id) VALUES ($1, $2, $3, $4) RETURNING *';
 
   // callback function for sql query
   const whenDoneWithQuery = (error, result) => {
@@ -117,8 +127,35 @@ app.post('/note', (request, response) => {
       return;
     }
 
-    // redirect to newly created note
-    response.redirect(`/note/${result.rows[0].id}`);
+    // retrieving the note id of the newly created note
+    const noteId = result.rows[0].id;
+
+    // write the 2nd sql query to insert values in the note_behaviours relationship table
+    const noteBehaviourIdInsertQuery = 'INSERT INTO note_behaviours (note_id, behaviour_id) VALUES ($1, $2)';
+
+    // for each behaviour id we have in the request, make an insert query
+    request.body.behaviourIds.forEach((behaviourId, index) => {
+      // construct the set of values we are inserting
+      const noteBehaviourValues = [noteId, behaviourId];
+
+      // execute the insert query
+      pool.query(noteBehaviourIdInsertQuery, noteBehaviourValues, (insertError, insertResult) => {
+        if (insertError) {
+          console.log('Error executing insert query', insertError.stack);
+
+          response.status(503).send(`error 503: service unavilable.<br /> ${insertResult.rows}`);
+          return;
+        }
+
+        // all queries are done
+        if (index === request.body.behaviourIds.length - 1) {
+          console.log('done inserting values into note_behaviours table!');
+
+          // redirect to newly created note
+          response.redirect(`/note/${result.rows[0].id}`);
+        }
+      });
+    });
   };
 
   // execute the sql query to add the new note to database
@@ -171,7 +208,7 @@ app.get('/', (request, response) => {
   console.log('request to render list of notes came in');
 
   // set the sql query to extract all notes
-  const notesQuery = 'SELECT notes.date, notes.behaviour, notes.flock_size, species.name AS species_name FROM notes INNER JOIN species ON notes.species_id = species.id';
+  const notesQuery = 'SELECT notes.id, notes.date, notes.flock_size, species.name AS species_name FROM notes INNER JOIN species ON notes.species_id = species.id';
 
   // callback function for sql query
   const whenDoneWithNotesQuery = (error, result) => {

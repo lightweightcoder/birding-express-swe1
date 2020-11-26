@@ -51,12 +51,9 @@
     </div>
   </div>
 
-  <div class="row justify-content-center">
+  <div class="row justify-content-center notes-headers">
     <div class="col-3">
       <h5>Date</h5>
-    </div>
-    <div class="col-3">
-      <h5>Behaviour</h5>
     </div>
     <div class="col-1">
       <h5>Flock Size</h5>
@@ -73,13 +70,10 @@
   <div class="row justify-content-center notes">
     <div class="col-3">
       <p>
-        <a class="badge badge-light" href="/note/<%= element.id %> "
+        <a class="badge badge-light" href="/note/<%= element.id %>"
           ><%= element.date %></a
         >
       </p>
-    </div>
-    <div class="col-3">
-      <p class="behaviour-content"><%= element.behaviour %></p>
     </div>
     <div class="col-1">
       <p><%= element.flock_size %></p>
