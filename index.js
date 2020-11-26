@@ -171,7 +171,7 @@ app.get('/', (request, response) => {
   console.log('request to render list of notes came in');
 
   // set the sql query to extract all notes
-  const notesQuery = 'SELECT * FROM notes';
+  const notesQuery = 'SELECT notes.date, notes.behaviour, notes.flock_size, species.name AS species_name FROM notes INNER JOIN species ON notes.species_id = species.id';
 
   // callback function for sql query
   const whenDoneWithNotesQuery = (error, result) => {

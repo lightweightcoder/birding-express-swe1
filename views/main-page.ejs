@@ -53,13 +53,16 @@
 
   <div class="row justify-content-center">
     <div class="col-3">
-      <h4>Date</h4>
+      <h5>Date</h5>
     </div>
-    <div class="col-4">
-      <h4>Behaviour</h4>
+    <div class="col-3">
+      <h5>Behaviour</h5>
     </div>
-    <div class="col-2">
-      <h4>Flock Size</h4>
+    <div class="col-1">
+      <h5>Flock Size</h5>
+    </div>
+    <div class="col-3">
+      <h5>Species</h5>
     </div>
     <div class="col-2"></div>
   </div>
@@ -75,11 +78,14 @@
         >
       </p>
     </div>
-    <div class="col-4">
+    <div class="col-3">
       <p class="behaviour-content"><%= element.behaviour %></p>
     </div>
-    <div class="col-2">
+    <div class="col-1">
       <p><%= element.flock_size %></p>
+    </div>
+    <div class="col-3">
+      <p><%= element.species_name %></p>
     </div>
     <div class="col-2">
       <form
