@@ -17,3 +17,5 @@ INSERT INTO species (name, scientific_name) VALUES ('Cinnamon Bittern', 'Ixobryc
 ALTER TABLE notes ADD COLUMN species_id INTEGER;
 
 UPDATE notes SET species_id=1 WHERE id=1;
+
+SELECT notes.date, notes.behaviour, notes.flock_size, species.name AS species_name FROM notes INNER JOIN species ON notes.species_id = species.id;
