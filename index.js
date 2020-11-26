@@ -16,7 +16,7 @@ const myEnvVar = process.env.MY_ENV_VAR;
 // Initialise the DB connection -----------------------------
 const { Pool } = pg;
 const pgConnectionConfigs = {
-  user: 'aljt',
+  user: process.env.USER, // this user is the computer user that runs this file
   host: 'localhost',
   database: 'birding',
   port: 5432, // Postgres server always runs on this port by default
