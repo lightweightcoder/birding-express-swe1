@@ -12,12 +12,38 @@
 <div class="container" id="note-data-container">
   <div class="row">
     <% Object.keys(note).forEach(function(key) { %>
-    <div class="col-10">
+    <div class="col-12">
       <p><%= `${key}:` %></p>
       <p id="info"><%= `${note[key]}` %></p>
     </div>
     <% }); %>
   </div>
+</div>
+
+<h1>Comments</h1>
+
+<div class="container" id="comments-container">
+  <% comments.forEach(function(comment) { %>
+  <div class="row">
+    <div class="col-12">
+      <h6><%= `User ${comment.user_id}:` %></h6>
+      <p><%= `${comment.description}` %></p>
+    </div>
+  </div>
+  <% }); %>
+</div>
+
+<div class="container" id="create-comment-container">
+  <div class="row">
+    <div class="col">
+      <h3>Create new comment</h3>
+    </div>
+  </div>
+
+  <form action="/note/<%= note.id %>/comment " method="POST">
+    <textarea name="comment" rows="2" class="form-control"></textarea>       
+    <input type="submit" value="Submit" class="btn btn-primary"/>
+  </form>
 </div>
 
 <!-- footer -->

@@ -110,7 +110,7 @@ app.post('/note', (request, response) => {
     date, flockSize, speciesId,
   } = request.body;
 
-  // // get the user_id value from the cookie
+  // get the user_id value from the cookie
   const { userId } = request.cookies;
 
   // set the values to put into the sql query
@@ -191,8 +191,29 @@ app.get('/note/:id', (request, response) => {
     // store note in an object
     const templateData = { note };
 
-    // render the form, pass in the template data
-    response.render('show-note', templateData);
+    // write the second query to get comments for that note
+    const commentsQuery = 'SELECT * FROM comments WHERE note_id=$1';
+
+    // value for commentsQuery
+    const noteIdArray = [id];
+
+    // callback for sql query for comments
+    const whenDoneWithCommentsQuery = (commentsError, commentsResult) => {
+      if (commentsError) {
+        console.log('Error executing comments query', commentsError.stack);
+        response.status(503).send(`error 503: service unavilable.<br /> ${result.rows}`);
+        return;
+      }
+
+      // store the array of comments in the template data
+      templateData.comments = commentsResult.rows;
+
+      // render the form, pass in the template data
+      response.render('show-note', templateData);
+    };
+
+    // execute the sql query for comments
+    pool.query(commentsQuery, noteIdArray, whenDoneWithCommentsQuery);
   };
 
   // execute the sql query for an exisiting note
@@ -201,6 +222,43 @@ app.get('/note/:id', (request, response) => {
 
 // end of functionality for user to display a single note -------------------------
 // ------------------------------------------------------------------------------------
+
+// start of functionality for a user to post a comment on a note ---------------------
+
+app.post('/note/:id/comment', (request, response) => {
+  // get the note id
+  const { id } = request.params;
+
+  // get the user id from the cookie
+  const { userId } = request.cookies;
+
+  // create var for the submitted comment from the form
+  const { comment } = request.body;
+
+  // values for sql query to insert new comment
+  const insertCommentValues = [id, `${userId}`, `${comment}`];
+
+  // write sql query to insert new comment
+  const insertCommentQuery = 'INSERT INTO comments (note_id, user_id, description) VALUES ($1, $2, $3)';
+
+  // callback for sql query to insert new comment
+  const whenDoneWithCommentQuery = (commentError, commentResult) => {
+    if (commentError) {
+      console.log('Error executing comments query', commentError.stack);
+      response.status(503).send('error 503: service unavilable.<br />');
+      return;
+    }
+
+    // redirect the user back to the note with updated comments
+    response.redirect(`/note/${id}`);
+  };
+
+  // execute sql query to insert new comment
+  pool.query(insertCommentQuery, insertCommentValues, whenDoneWithCommentQuery);
+});
+
+// end of functionality for a user to post a comment on a note -------------------------
+// -------------------------------------------------------------------------------------
 
 // start of functionality for user to display a list (all) of notes -----------------
 
@@ -288,7 +346,7 @@ app.post('/signup', (request, response) => {
 
       console.table(addUserResult.rows);
 
-      response.send('successfully created account! Please return to main page to log in');
+      response.send('successfully created account! Please return to <a href="/">main page</a> to log in');
     });
   });
 });

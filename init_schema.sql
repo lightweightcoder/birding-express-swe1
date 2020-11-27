@@ -16,5 +16,5 @@ CREATE TABLE note_behaviours (id SERIAL PRIMARY KEY, note_id INTEGER, behaviour_
 
 CREATE TABLE behaviours (id SERIAL PRIMARY KEY, name TEXT);
 
-CREATE TABLE comments (id SERIAL PRIMARY KEY, note_id INTEGER, user_id INTEGER);
+CREATE TABLE comments (id SERIAL PRIMARY KEY, note_id INTEGER, user_id INTEGER, description TEXT);
 
