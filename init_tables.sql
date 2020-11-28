@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS notes (
     id SERIAL PRIMARY KEY,
     date TEXT,
-    flock_size INTEGER
+    flock_size INTEGER,
     user_id INTEGER,
     species_id INTEGER
 );
