@@ -15,19 +15,37 @@ const myEnvVar = process.env.MY_ENV_VAR;
 
 // Initialise the DB connection -----------------------------
 const { Pool } = pg;
-const pgConnectionConfigs = {
-  user: process.env.USER, // this user is the computer user that runs this file
-  host: 'localhost',
-  database: 'birding',
-  port: 5432, // Postgres server always runs on this port by default
-};
+
+// create separate DB connection configs for production vs non-production environments.
+// ensure our server still works on our local machines.
+let pgConnectionConfigs;
+if (process.env.ENV === 'PRODUCTION') {
+  // determine how we connect to the remote Postgres server
+  pgConnectionConfigs = {
+    user: 'postgres',
+    // set DB_PASSWORD as an environment variable for security.
+    password: process.env.DB_PASSWORD,
+    host: 'localhost',
+    database: 'birding',
+    port: 5432,
+  };
+} else {
+  // determine how we connect to the local Postgres server
+  pgConnectionConfigs = {
+    user: process.env.USER, // this user is the computer user that runs this file
+    host: 'localhost',
+    database: 'birding',
+    port: 5432, // Postgres server always runs on this port by default
+  };
+}
+
 const pool = new Pool(pgConnectionConfigs);
 
 // Initialise Express ---------------------------
 // create an express application
 const app = express();
 // set the port number
-const PORT = 3004;
+const PORT = process.argv[2];
 // set the view engine to ejs
 app.set('view engine', 'ejs');
 // config to accept request form data
