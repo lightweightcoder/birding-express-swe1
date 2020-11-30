@@ -56,34 +56,114 @@ app.use(methodOverride('_method'));
 app.use(express.static('public'));
 // config to allow use of cookie parser
 app.use(cookieParser());
+// 3.6.5: to perform a code whenever a request is made to any url
+// app.use((request, response, next) => {
+//   console.log('Every request:', request.path);
+//   next();
+// });
 
 // routes =============================================================
 
 // start of functionality for user to create a new note by filling up a form ------------
 
-// render the form (note.ejs) that will create the request
-app.get('/note', (request, response) => {
-  console.log('request to render a new note came in');
+// render the form (note.ejs) that will create the request (commented out lines 69-124)
+// app.get('/note', (request, response) => {
+//   console.log('request to render a new note came in');
 
-  // to verify userId will produce a hash equal to loggedInHash
-  // this is to prevent people from just sending a random userId to authenticate themselves --------
+//   // to verify userId will produce a hash equal to loggedInHash
+//   // this is to prevent people from just sending a random userId to authenticate themselves --------
 
-  // extract loggedInHash and userId from request cookies
-  // if there are such cookies, loggedInHash and userId will have a value of undefined
-  const { loggedInHash, userId } = request.cookies;
+//   // extract loggedInHash and userId from request cookies
+//   // if there are such cookies, loggedInHash and userId will have a value of undefined
+//   const { loggedInHash, userId } = request.cookies;
+//   // create new SHA object
+//   const shaObj = new jsSha('SHA-512', 'TEXT', { encoding: 'UTF8' });
+//   // reconstruct the hashed cookie string
+//   const unhashedCookieString = `${userId}-${myEnvVar}`;
+//   // input the unhashed cookie string to the SHA object
+//   shaObj.update(unhashedCookieString);
+//   // generate a hashed cookie string using SHA object
+//   const hashedCookieString = shaObj.getHash('HEX');
+
+//   // verify if the generated hashed cookie string matches the request cookie value.
+//   // if hashed value doesn't match, return 403.
+//   if (hashedCookieString !== loggedInHash) {
+//     response.status(403).send('please login <a href="/login">here</a>.');
+//     return;
+//   }
+
+//   // logic to render the form ------------------------------
+
+//   // query the DB for species table
+//   pool.query('SELECT * FROM species', (speciesError, speciesResult) => {
+//     if (speciesError) {
+//       console.log('Error executing select species query', speciesError.stack);
+//       response.status(503).send(`error 503: service unavilable.<br /> ${speciesResult.rows}`);
+//       return;
+//     }
+
+//     // query the DB for bahaviours table
+//     pool.query('SELECT * FROM behaviours', (behaviourError, behaviourResult) => {
+//       if (behaviourError) {
+//         console.log('Error executing select species query', behaviourError.stack);
+//         response.status(503).send(`error 503: service unavilable.<br /> ${behaviourResult.rows}`);
+//         return;
+//       }
+
+//       // store the species table in an object
+//       const templateData = {
+//         species: speciesResult.rows,
+//         behaviours: behaviourResult.rows,
+//       };
+
+//       // render the form
+//       response.render('note', templateData);
+//     });
+//   });
+// });
+
+// 3.6.5, using cookie checking middleware to do user auth
+// then render the form (note.ejs) that will create the request --------------
+// function for hashing
+const getHash = (input) => {
   // create new SHA object
   const shaObj = new jsSha('SHA-512', 'TEXT', { encoding: 'UTF8' });
   // reconstruct the hashed cookie string
-  const unhashedCookieString = `${userId}-${myEnvVar}`;
+  const unhashedCookieString = `${input}-${myEnvVar}`;
   // input the unhashed cookie string to the SHA object
   shaObj.update(unhashedCookieString);
-  // generate a hashed cookie string using SHA object
-  const hashedCookieString = shaObj.getHash('HEX');
+
+  return shaObj.getHash('HEX');
+};
+
+// set the cookie checking middleware callback
+const checkAuth = ((request, response, next) => {
+  // set the default value
+  request.middlewareLoggedIn = false;
+
+  // check to see if the cookies you need exists
+  if (request.cookies.loggedInHash && request.cookies.userId) {
+    // get the hased value that should be inside the cookie
+    const hash = getHash(request.cookies.userId);
+
+    // test the value of the cookie
+    if (request.cookies.loggedInHash === hash) {
+      request.middlewareLoggedIn = true;
+    }
+  }
+
+  // run the next callback fn of the route that this callback fn is in
+  next();
+});
+
+app.get('/note', checkAuth, (request, response) => {
+  console.log('request to render a new note came in');
 
   // verify if the generated hashed cookie string matches the request cookie value.
   // if hashed value doesn't match, return 403.
-  if (hashedCookieString !== loggedInHash) {
-    response.status(403).send('please login <a href="/login">here</a>.');
+  // Boolean for request.middlewareLoggedIn was generated in userAuth middleware
+  if (request.middlewareLoggedIn === false) {
+    response.status(403).send('sorry, middlewareLoggedIn is false');
     return;
   }
 
