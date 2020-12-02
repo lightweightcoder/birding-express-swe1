@@ -1,3 +1,9 @@
+CREATE TABLE photos (
+  id SERIAL PRIMARY KEY,
+  label TEXT,
+  photo TEXT
+);
+
 CREATE TABLE IF NOT EXISTS notes (
     id SERIAL PRIMARY KEY,
     date TEXT,

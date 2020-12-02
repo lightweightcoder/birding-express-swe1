@@ -3,6 +3,7 @@ import methodOverride from 'method-override';
 import pg from 'pg';
 import cookieParser from 'cookie-parser';
 import jsSha from 'jssha';
+import multer from 'multer';
 
 // SALT is used to hash the userId cookie
 // the SALT is a constant value.
@@ -41,6 +42,9 @@ if (process.env.ENV === 'PRODUCTION') {
 
 const pool = new Pool(pgConnectionConfigs);
 
+// set the name of the upload directory here for 3.5.11
+const multerUpload = multer({ dest: 'uploads/' });
+
 // Initialise Express ---------------------------
 // create an express application
 const app = express();
@@ -61,8 +65,65 @@ app.use(cookieParser());
 //   console.log('Every request:', request.path);
 //   next();
 // });
+// add the configs so that Express.js will serve files from the uploads directory
+app.use(express.static('uploads'));
 
 // routes =============================================================
+
+// start of functionality to upload a file
+app.get('/uploadphoto', (request, response) => {
+  response.render('upload');
+});
+
+app.post('/uploadphoto', multerUpload.single('photo'), (request, response) => {
+  console.log('request came in');
+
+  console.log(request.file);
+
+  const sqlQuery = 'INSERT INTO photos (label, photo) VALUES ($1, $2) RETURNING *';
+
+  // get the photo column value from request.file
+  const values = [request.body.label, request.file.filename];
+
+  // Query using pg.Pool instead of pg.Client
+  pool.query(sqlQuery, values, (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+
+    console.table(result.rows[0]);
+
+    response.redirect('/');
+  });
+});
+// end of functionality to upload a file --------------------------------------------
+
+// start of functionality for user to show a photo ------------
+app.get('/photo/:id', (request, response) => {
+  const sqlQuery = 'SELECT * FROM photos WHERE id=$1';
+
+  console.log('request.params.id = ', request.params.id);
+  const values = [request.params.id];
+
+  // Query using pg.Pool instead of pg.Client
+  pool.query(sqlQuery, values, (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+
+    console.table(result.rows[0]);
+
+    const data = {
+      photo: result.rows[0],
+    };
+
+    response.render('photo', data);
+  });
+});
 
 // start of functionality for user to create a new note by filling up a form ------------
 

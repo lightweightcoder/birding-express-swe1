@@ -1,3 +1,5 @@
+SELECT * FROM photos;
+
 ALTER TABLE notes ADD COLUMN species_id INTEGER;
 
 UPDATE notes SET species_id=1 WHERE id=1;
